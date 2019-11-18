@@ -23,6 +23,7 @@
 #include "default_compiler.hpp"
 #include "ras/IlVerifier.hpp"
 #include "ras/IlVerifierHelpers.hpp"
+#include <iostream>
 
 #define ASSERT_NULL(pointer) ASSERT_EQ(NULL, (pointer))
 #define ASSERT_NOTNULL(pointer) ASSERT_TRUE(NULL != (pointer))
@@ -54,5 +55,6 @@ TEST_F(CompileTest, NoCodeGen) {
 
     EXPECT_NE(0, compiler.compileWithVerifier(&verifier)) << "Compilation succeeded";
 
+    std::cout << "aaaaaa\n";
     EXPECT_TRUE(verifier.hasRun());
 }

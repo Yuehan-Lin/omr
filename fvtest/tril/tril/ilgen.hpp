@@ -31,6 +31,53 @@
 #include <string>
 #include <vector>
 
+
+#include "omrcfg.h"
+#include "compiler_util.hpp"
+#include "maps.hpp"
+#include "converter.hpp"
+#include "ConvertCall.hpp"
+#include "ConvertId.hpp"
+
+#include "compile/ResolvedMethod.hpp"
+#include "il/Block.hpp"
+#include "il/Node.hpp"
+#include "il/Node_inlines.hpp"
+
+#include <string>
+
+class OpCodeTable : public TR::ILOpCode {
+   public:
+      explicit OpCodeTable(TR::ILOpCodes opcode) : TR::ILOpCode(opcode) {}
+      explicit OpCodeTable(const std::string& name) : TR::ILOpCode(getOpCodeFromName(name)) {}
+
+      /**
+       * @brief Given an opcode name, returns the corresponding TR::OpCodes value
+       */
+      static TR::ILOpCodes getOpCodeFromName(const std::string& name) {
+         auto opcode = _opcodeNameMap.find(name);
+         if (opcode == _opcodeNameMap.end()) {
+            for (int i = TR::FirstOMROp; i< TR::NumIlOps; i++) {
+               const auto p_opCode = static_cast<TR::ILOpCodes>(i);
+               const auto& p = TR::ILOpCode::_opCodeProperties[p_opCode];
+               if (name == p.name) {
+                  _opcodeNameMap[name] = p.opcode;
+                  return p.opcode;
+               }
+            }
+            return TR::BadILOp;
+         }
+         else {
+            return opcode->second;
+         }
+      }
+
+   private:
+      static std::map<std::string, TR::ILOpCodes> _opcodeNameMap;
+};
+
+class ASTToTRNode;
+
 namespace Tril {
 
 /**
@@ -46,8 +93,8 @@ class TRLangBuilder : public TR::IlInjector {
          * @param trees is the list of AST nodes representing the TR::Node instances to be generated
          * @param d is the type dictionary to be used this IL generator
          */
-        TRLangBuilder(const ASTNode* trees, TR::TypeDictionary* d)
-              : TR::IlInjector(d), _trees(trees) {}
+        TRLangBuilder(const ASTNode* trees, TR::TypeDictionary* d, ASTToTRNode* converter)
+              : TR::IlInjector(d), _converter(converter), _trees(trees) {}
 
         bool injectIL(); /* override */
 
@@ -66,6 +113,7 @@ class TRLangBuilder : public TR::IlInjector {
         bool cfgFor(const ASTNode* const tree);
 
     private:
+        ASTToTRNode* _converter;
         TR::TypeDictionary _types;
         const ASTNode* _trees;    // pointer to the AST node list representing Trees
         std::map<std::string, TR::SymbolReference*> _symRefMap; // mapping of string names to symrefs

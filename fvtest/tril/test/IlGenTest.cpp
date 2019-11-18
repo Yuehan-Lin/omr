@@ -35,6 +35,7 @@
 #include "ilgen.hpp"
 #include "ilgen/IlGeneratorMethodDetails_inlines.hpp"
 
+
 #define ASSERT_NULL(pointer) ASSERT_EQ(NULL, (pointer))
 #define ASSERT_NOTNULL(pointer) ASSERT_TRUE(NULL != (pointer))
 
@@ -47,7 +48,10 @@ TEST_F(IlGenTest, Return3) {
     auto Int32 = types.PrimitiveType(TR::Int32);
     TR::IlType* argTypes[] = { Int32 };
 
-    Tril::TRLangBuilder injector(trees, &types);
+    Tril::ConvertCall convertCall;
+    Tril::ConvertId convertId(&convertCall);
+
+    Tril::TRLangBuilder injector(trees, &types, &convertId);
     TR::ResolvedMethod compilee(__FILE__, LINETOSTR(__LINE__), "Return3InIL", sizeof(argTypes)/sizeof(TR::IlType*), argTypes, Int32, 0, &injector);
     TR::IlGeneratorMethodDetails methodDetails(&compilee);
     int32_t rc = 0;

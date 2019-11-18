@@ -20,6 +20,9 @@
  *******************************************************************************/
 
 #include "simple_compiler.hpp"
+#include "ConvertCall.hpp"
+#include "ConvertId.hpp"
+#include <iostream>
 
 #include "env/jittypes.h"
 #include "il/DataTypes.hpp"
@@ -43,7 +46,9 @@ int32_t Tril::SimpleCompiler::compileWithVerifier(TR::IlVerifier* verifier) {
     // construct an IL generator for the method
     auto methodInfo = getMethodInfo();
     TR::TypeDictionary types;
-    Tril::TRLangBuilder ilgenerator(methodInfo.getBodyAST(), &types);
+    ConvertCall convertCall;
+    ConvertId convertId(&convertCall);
+    Tril::TRLangBuilder ilgenerator(methodInfo.getBodyAST(), &types, &convertId);
 
     // get a list of the method's argument types and transform it
     // into a list of `TR::IlType`
@@ -62,7 +67,6 @@ int32_t Tril::SimpleCompiler::compileWithVerifier(TR::IlVerifier* verifier) {
                                       0,
                                       &ilgenerator);
     TR::IlGeneratorMethodDetails methodDetails(&resolvedMethod);
-
     // If a verifier is provided, set one up.
     if (NULL != verifier)
        {
@@ -70,8 +74,9 @@ int32_t Tril::SimpleCompiler::compileWithVerifier(TR::IlVerifier* verifier) {
        }
 
     int32_t rc = 0;
+    std::cout <<  "compileMethodFromDetails\n";
     auto entry_point = compileMethodFromDetails(NULL, methodDetails, warm, rc);
-
+std::cout <<  "after: compileMethodFromDetails\n";
     // if compilation was successful, set the entry point for the compiled body
     if (rc == 0)
        {
@@ -92,5 +97,6 @@ int32_t Tril::SimpleCompiler::compileWithVerifier(TR::IlVerifier* verifier) {
        }
 
     // return the return code for the compilation
+    std::cout <<  "jhhhh]\n";
     return rc;
 }
